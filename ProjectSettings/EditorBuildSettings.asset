@@ -8,6 +8,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/ARScene.unity
     guid: 4ef41e71acbd45344b20d50fa28a6bd7
+  - enabled: 1
+    path: Assets/Scenes/VRScene.unity
+    guid: 3e1b2951077efa34181fbcaba33d5f74
   m_configObjects:
     com.unity.xr.management.loader_settings: {fileID: 11400000, guid: 62ee2bee39657d940b83c198dfdc8cd5, type: 2}
     com.unity.xr.openxr.settings4: {fileID: 11400000, guid: c91c31e3eff360a49a753232f1b6292f, type: 2}
