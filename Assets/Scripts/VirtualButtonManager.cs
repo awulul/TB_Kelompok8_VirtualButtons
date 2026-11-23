@@ -15,14 +15,27 @@
 // .CurrentStatus. Hasilnya sama: tombol terdeteksi saat area
 // tombol di brosur ditutupi jari.
 //
-// Tombol dibuat SAAT RUNTIME memakai
-// ImageTargetBehaviour.CreateVirtualButton(...) supaya posisinya
-// pas persis dengan kotak tombol di brosur cetak.
+// Tombol didefinisikan PERMANEN di editor sebagai
+// VirtualButtonBehaviour anak ImageTarget (BtnSuara, BtnWarna,
+// BtnVR), areanya diatur di Scene view menutupi kotak tombol
+// pada gambar brosur.
+//
+// Revisi 21 Nov 2026: tombol TIDAK lagi dibuat saat runtime.
+// CreateVirtualButton terbukti selalu gagal di kombinasi
+// Vuforia 9.6.3 + dataset DB_Brosur ini (diuji 6 konvensi
+// koordinat/posisi, dengan template, dengan coba-ulang —
+// semuanya null / "Could not create Virtual Button").
+// Solusinya: ketiga tombol didefinisikan permanen di editor
+// sebagai VirtualButtonBehaviour anak ImageTarget bernama
+// BtnSuara, BtnWarna, BtnVR, dan script ini tinggal mencari
+// + membaca status Pressed-nya.
 //
 // Cara pakai:
-// 1. Pasang script ini di GameObject kosong "ARManager".
-// 2. Hubungkan semua slot di Inspector (lihat panduan Tahap 4).
-// 3. Tombol "ditekan" dengan cara MENUTUPI area tombol di brosur
+// 1. Buat dulu 3 Virtual Button di editor (lihat panduan
+//    Tahap 4 Bagian 5 revisi).
+// 2. Pasang script ini di GameObject kosong "ARManager".
+// 3. Hubungkan semua slot di Inspector (lihat panduan Tahap 4).
+// 4. Tombol "ditekan" dengan cara MENUTUPI area tombol di brosur
 //    dengan jari selama +-0,5 detik (bukan menyentuh layar HP).
 // ============================================================
 using System.Collections;
@@ -43,16 +56,6 @@ public class VirtualButtonManager : MonoBehaviour
     public GameObject vrInfoPanel;             // PanelVR (awalnya nonaktif)
     public Text statusText;                    // StatusText di Canvas
 
-    [Header("Posisi Tombol di Brosur (meter, dari TENGAH target)")]
-    public Vector2 btnSuaraPos = new Vector2(-0.09f, -0.065f);
-    public Vector2 btnWarnaPos = new Vector2(0f, -0.065f);
-    public Vector2 btnVrPos    = new Vector2(0.09f, -0.065f);
-    public Vector2 buttonSize  = new Vector2(0.04f, 0.04f);
-
-    [Header("Kalibrasi (diuji di Tahap 5)")]
-    [Tooltip("Centang kalau baris tombol terdeteksi di sisi ATAS brosur, bukan di bawah")]
-    public bool flipY = false;
-
     private VirtualButtonBehaviour vbSuara;
     private VirtualButtonBehaviour vbWarna;
     private VirtualButtonBehaviour vbVr;
@@ -71,14 +74,32 @@ public class VirtualButtonManager : MonoBehaviour
             return;
         }
 
-        // === Buat 3 Virtual Button saat runtime ===
-        vbSuara = CreateButton("BtnSuara", btnSuaraPos);
-        vbWarna = CreateButton("BtnWarna", btnWarnaPos);
-        vbVr    = CreateButton("BtnVR",    btnVrPos);
+        // Tombol didefinisikan di editor sebagai anak
+        // ImageTarget — cari berdasarkan nama GameObject-nya.
+        vbSuara = FindButton("BtnSuara");
+        vbWarna = FindButton("BtnWarna");
+        vbVr    = FindButton("BtnVR");
+        if (vbSuara == null || vbWarna == null || vbVr == null)
+        {
+            Debug.LogError("Ada Virtual Button yang tidak ditemukan " +
+                "di anak ImageTarget! Pastikan ada GameObject " +
+                "BtnSuara, BtnWarna, dan BtnVR dengan komponen " +
+                "Virtual Button Behaviour.");
+            return;
+        }
 
         prevStatus = imageTarget.CurrentStatus;
         statusReady = true;
         SetStatus("Arahkan kamera ke brosur...");
+    }
+
+    private VirtualButtonBehaviour FindButton(string buttonName)
+    {
+        VirtualButtonBehaviour[] all =
+            imageTarget.GetComponentsInChildren<VirtualButtonBehaviour>(true);
+        foreach (VirtualButtonBehaviour vb in all)
+            if (vb.gameObject.name == buttonName) return vb;
+        return null;
     }
 
     void Update()
@@ -108,23 +129,6 @@ public class VirtualButtonManager : MonoBehaviour
         bool now = vb.Pressed;
         if (now && !prevPressed) action();   // cuma sekali pas awal ditekan
         prevPressed = now;
-    }
-
-    private VirtualButtonBehaviour CreateButton(string name, Vector2 centerPos)
-    {
-        float cy = flipY ? -centerPos.y : centerPos.y;
-        // CreateVirtualButton menerima sudut kiri-atas & kanan-bawah
-        // area tombol (koordinat lokal target, meter, Y ke atas).
-        Vector2 topLeft = new Vector2(
-            centerPos.x - buttonSize.x / 2f, cy + buttonSize.y / 2f);
-        Vector2 bottomRight = new Vector2(
-            centerPos.x + buttonSize.x / 2f, cy - buttonSize.y / 2f);
-
-        VirtualButtonBehaviour vb =
-            imageTarget.CreateVirtualButton(name, topLeft, bottomRight);
-        if (vb == null)
-            Debug.LogError("Gagal membuat Virtual Button: " + name);
-        return vb;
     }
 
     private bool IsTracked(TrackableBehaviour.Status s)
@@ -177,7 +181,7 @@ public class VirtualButtonManager : MonoBehaviour
     private void OnBtnVr()
     {
         if (vrInfoPanel != null) vrInfoPanel.SetActive(true);
-        SetStatus("Tombol VR: lanjutkan pengalaman ini di headset Quest (Mode VR).");
+        SetStatus("Tombol VR: panel Ruang Dengar Virtual dibuka.");
     }
 
     // Dipanggil dari Button "Tutup" di PanelVR (On Click di Inspector)
