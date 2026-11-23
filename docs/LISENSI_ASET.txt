@@ -1,0 +1,51 @@
+LISENSI ASET — Tugas Besar Kelompok 8 (AR/VR)
+Proyek: TB_Kelompok8_VirtualButtons — "Brosur Speaker Interaktif"
+Dibuat: 20 November 2026; diperbarui: 23 November 2026
+
+1. Musik speaker (AudioSource di Speaker3D, tombol SUARA)
+   a. MusikSpeaker_Grunge_HoliznaCC0.mp3 — DIPAKAI sebagai MusikSpeaker
+      - Judul asli: "Grunge" oleh HoliznaCC0 (album "Rock Montage").
+      - Sumber: Free Music Archive —
+        https://freemusicarchive.org/music/holiznacc0/rock-montage/grunge/
+        (diakses 20 November 2026).
+      - Lisensi: CC0 1.0 Universal (domain publik) — bebas digunakan,
+        disalin, diubah, dan disebarluaskan, termasuk di-commit ke repo
+        publik dan untuk keperluan komersial, tanpa kewajiban atribusi.
+      - Format: MP3 320 kbps stereo 48 kHz, durasi 1:49, instrumental
+        (punk/garage rock). Di Assets/Audio file diganti nama menjadi
+        MusikSpeaker.mp3; judul & pencipta asli tercatat di dokumen ini.
+   b. MusikSpeaker.wav (cadangan, tidak dipakai di build final)
+      - Loop 19,2 detik yang dibuat khusus untuk proyek ini (bukan
+        unduhan), WAV 16-bit stereo 44,1 kHz — juga bebas lisensi.
+
+2. Brosur_Kelompok8_A4.jpg / Brosur_Kelompok8_A4.pdf
+   - Desain brosur "BOOMBOX X1 — Speaker Bluetooth", dibuat sendiri
+     untuk proyek ini (gambar speaker & latar dari stok bebas lisensi).
+   - Dipakai sebagai Image Target Vuforia (DB_Brosur / BrosurSpeaker)
+     dan sebagai brosur cetak untuk demo.
+
+3. Model 3D dan ruangan
+   - Speaker (badan, dua cone, RingLampu) dan ruang dengar virtual
+     (lantai, dinding, meja, bola, kubus) dibuat sendiri dari objek
+     primitif Unity (Cube, Cylinder, Sphere, Plane) beserta material
+     warna buatan sendiri (Warna1–3, LantaiVR, DindingVR, MejaVR,
+     Memantul). Tidak ada model unduhan pihak ketiga.
+
+4. Kode / script (di Assets/Scripts)
+   - Ditulis khusus untuk proyek ini, bebas dipakai dan diubah oleh
+     anggota Kelompok 8:
+     - VirtualButtonManager.cs — polling Virtual Button Vuforia 9.6.3,
+       aksi SUARA/WARNA/MASUK VR, transisi scene, simpan warna.
+     - PhoneCameraLook.cs — kamera VR versi HP (giroskop / seret).
+     - TouchGrabber.cs — ambil & lempar objek pakai sentuhan + fisika.
+     - PindahScene.cs — fungsi pindah scene untuk tombol UI.
+     - TerapkanWarnaTersimpan.cs — terapkan warna cincin tersimpan
+       di VRScene.
+   - GrabbableSpeaker.cs adalah versi awal berbasis XR Interaction
+     Toolkit yang TIDAK dipakai di build final (digantikan
+     TouchGrabber); filenya dipertahankan di repo sebagai riwayat.
+
+5. Aset pihak ketiga yang dipakai di proyek (bukan milik kelompok):
+   - Vuforia Engine 9.6.3 — lisensi Basic (gratis) atas nama TBKelompok8.
+   - Unity 2022.3 LTS, OpenXR Plugin, XR Interaction Toolkit —
+     lisensi masing-masing penyedia (lihat dokumentasi resminya).
