@@ -1,6 +1,17 @@
 // ============================================================
 // VirtualButtonManager.cs — Tugas Besar Kelompok 8 (bagian AR)
-// VERSI Vuforia 9.6.3 (polling)
+// VERSI 5 — Vuforia 9.6.3 (polling) + INTEGRASI AR -> VR
+//
+// Perubahan v5 (integrasi, dikerjakan Aul setelah Tahap 6 Nad):
+// 1. Tombol MASUK VR sekarang BENAR-BENAR pindah ke VRScene
+//    (SceneManager.LoadScene), bukan lagi membuka PanelVR.
+//    PanelVR + HideVrPanel() dibiarkan ada (tidak dipakai tombol
+//    ini lagi) supaya wiring lama di scene tidak rusak.
+// 2. Setiap tombol WARNA ditekan, nomor warna terakhir DISIMPAN
+//    (PlayerPrefs kunci "WarnaCincin") dan saat ARScene mulai,
+//    warna terakhir itu diterapkan lagi ke RingLampu. Script
+//    TerapkanWarnaTersimpan di VRScene membaca kunci yang sama,
+//    jadi warna cincin yang dipilih di AR TERBAWA ke ruang VR.
 //
 // Kenapa 9.6.3? Class VirtualButtonBehaviour SUDAH DIHAPUS dari
 // Vuforia 11 (compile error CS0246 terbukti di project ini), dan
@@ -40,6 +51,7 @@
 // ============================================================
 using System.Collections;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using Vuforia;
 
@@ -55,6 +67,9 @@ public class VirtualButtonManager : MonoBehaviour
     [Header("UI")]
     public GameObject vrInfoPanel;             // PanelVR (awalnya nonaktif)
     public Text statusText;                    // StatusText di Canvas
+
+    [Header("Integrasi VR")]
+    public string vrSceneName = "VRScene";     // scene tujuan tombol MASUK VR
 
     private VirtualButtonBehaviour vbSuara;
     private VirtualButtonBehaviour vbWarna;
@@ -86,6 +101,16 @@ public class VirtualButtonManager : MonoBehaviour
                 "BtnSuara, BtnWarna, dan BtnVR dengan komponen " +
                 "Virtual Button Behaviour.");
             return;
+        }
+
+        // Warna cincin terakhir (kalau pernah menekan WARNA)
+        // diterapkan lagi — berlaku juga sepulang dari VR.
+        colorIndex = PlayerPrefs.GetInt("WarnaCincin", 0);
+        if (speakerRenderer != null && colorMaterials != null &&
+            colorIndex >= 0 && colorIndex < colorMaterials.Length &&
+            colorMaterials[colorIndex] != null)
+        {
+            speakerRenderer.material = colorMaterials[colorIndex];
         }
 
         prevStatus = imageTarget.CurrentStatus;
@@ -175,13 +200,19 @@ public class VirtualButtonManager : MonoBehaviour
         if (speakerRenderer == null || colorMaterials == null || colorMaterials.Length == 0) return;
         colorIndex = (colorIndex + 1) % colorMaterials.Length;
         speakerRenderer.material = colorMaterials[colorIndex];
+        // Simpan warna terakhir supaya terbawa ke ruang VR
+        // (dibaca TerapkanWarnaTersimpan di VRScene).
+        PlayerPrefs.SetInt("WarnaCincin", colorIndex);
+        PlayerPrefs.Save();
         SetStatus("Tombol WARNA: warna speaker diganti (" + (colorIndex + 1) + "/" + colorMaterials.Length + ").");
     }
 
     private void OnBtnVr()
     {
-        if (vrInfoPanel != null) vrInfoPanel.SetActive(true);
-        SetStatus("Tombol VR: panel Ruang Dengar Virtual dibuka.");
+        // v5: langsung pindah ke ruang dengar (VRScene).
+        // Syarat: VRScene terdaftar di Build Settings (nomor 1).
+        SetStatus("Tombol VR: masuk ke Ruang Dengar Virtual...");
+        SceneManager.LoadScene(vrSceneName);
     }
 
     // Dipanggil dari Button "Tutup" di PanelVR (On Click di Inspector)
